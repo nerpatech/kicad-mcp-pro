@@ -7,6 +7,7 @@ from kicad_mcp.utils.footprint_validate import (
     check_footprint_documentation_layers,
     check_footprint_pad_count,
     count_numbered_pads,
+    count_thru_hole_pads,
     expected_pin_count_from_package,
     parse_ipc_density,
     parse_smd_pads,
@@ -182,3 +183,20 @@ def test_generated_qfp_footprint_records_its_density() -> None:
 
 def test_parse_ipc_density_is_none_when_absent() -> None:
     assert parse_ipc_density(_pads_text(["1", "2"])) is None
+
+
+def test_count_thru_hole_pads_sees_what_parse_smd_pads_cannot() -> None:
+    # parse_smd_pads() matches `smd` only, so a through-hole footprint reads as
+    # zero pads. The THT counter is what lets callers tell "no pads" apart from
+    # "pads this parser does not cover".
+    text = _pads_text(["1", "2"], pad_type="thru_hole")
+    assert parse_smd_pads(text) == []
+    assert count_thru_hole_pads(text) == 2
+
+
+def test_count_thru_hole_pads_ignores_smd_pads() -> None:
+    assert count_thru_hole_pads(_pads_text(["1", "2"], pad_type="smd")) == 0
+
+
+def test_count_thru_hole_pads_counts_np_thru_hole() -> None:
+    assert count_thru_hole_pads(_pads_text(["1"], pad_type="np_thru_hole")) == 1

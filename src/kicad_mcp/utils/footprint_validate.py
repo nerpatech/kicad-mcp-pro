@@ -183,6 +183,10 @@ _PAD_NUM_RE = re.compile(
     r'\(pad\s+"?(?P<num>[^"\s)]+)"?\s+(?:smd|thru_hole|connect)\b',
     re.IGNORECASE,
 )
+_THRU_HOLE_PAD_RE = re.compile(
+    r'\(pad\s+"?[^"\s)]+"?\s+(?:np_thru_hole|thru_hole)\b',
+    re.IGNORECASE,
+)
 
 
 def expected_pin_count_from_package(footprint_name: str) -> int | None:
@@ -200,6 +204,16 @@ def expected_pin_count_from_package(footprint_name: str) -> int | None:
     if pin_count is not None:
         return int(pin_count.group(1))
     return None
+
+
+def count_thru_hole_pads(footprint_text: str) -> int:
+    """Count through-hole pads, which :func:`parse_smd_pads` cannot see.
+
+    ``parse_smd_pads`` matches ``smd`` pads only, so a through-hole footprint
+    parses as zero pads. Callers use this to tell "no pads at all" apart from
+    "pads outside this validator's scope" and report the difference honestly.
+    """
+    return len(_THRU_HOLE_PAD_RE.findall(footprint_text))
 
 
 def count_numbered_pads(footprint_text: str) -> int:
