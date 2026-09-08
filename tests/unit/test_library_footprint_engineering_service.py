@@ -199,3 +199,23 @@ def test_certify_footprint_reports_warn_for_missing_documentation_graphics(
 
     assert result.startswith("Footprint certification: WARN")
     assert "documentation-layers" in result
+
+
+def test_validate_footprint_reports_thru_hole_as_out_of_scope(tmp_path: Path) -> None:
+    # Regression for #865: a through-hole footprint used to fall through to the
+    # chip-pad-count check and return "found 0", which reads as a malformed
+    # footprint rather than an unsupported one.
+    service, _ = _service(tmp_path)
+    path = tmp_path / "tht.kicad_mod"
+    path.write_text(
+        '(footprint "X"\n'
+        '(pad "1" thru_hole circle (at 0 0) (size 1.5 1.5) (drill 0.8) (layers "*.Cu"))\n'
+        '(pad "2" thru_hole circle (at 2 0) (size 1.5 1.5) (drill 0.8) (layers "*.Cu"))\n'
+        ")\n",
+        encoding="utf-8",
+    )
+
+    result = service.validate_footprint_ipc7351(str(path), "0805")
+
+    assert "through-hole" in result
+    assert "found 0" not in result

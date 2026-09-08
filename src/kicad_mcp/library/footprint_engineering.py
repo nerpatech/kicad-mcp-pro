@@ -13,6 +13,7 @@ from ..utils.footprint_validate import (
     FootprintCheck,
     check_footprint_documentation_layers,
     check_footprint_pad_count,
+    count_thru_hole_pads,
     parse_ipc_density,
     parse_smd_pads,
     validate_chip_footprint,
@@ -111,6 +112,15 @@ class LibraryFootprintEngineeringService:
             return f"Footprint file not found: {path}"
         text = path.read_text(encoding="utf-8", errors="ignore")
         pads = parse_smd_pads(text)
+        if not pads:
+            thru_hole = count_thru_hole_pads(text)
+            if thru_hole:
+                return (
+                    "Footprint IPC-7351B validation: NOT APPLICABLE\n"
+                    f"- This footprint has {thru_hole} through-hole pad(s) and no SMD pads. "
+                    "This check validates two-terminal SMD chip land geometry only, so it "
+                    "has nothing to measure here -- this is not a defect in the footprint."
+                )
         try:
             result = validate_chip_footprint(
                 size_code,
