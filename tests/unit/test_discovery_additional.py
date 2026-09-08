@@ -161,6 +161,15 @@ def _fake_kipy(monkeypatch, reported_path: Path) -> None:
     monkeypatch.setitem(sys.modules, "kipy.kicad", fake_module)
 
 
+def test_discover_via_kipy_returns_none_when_reported_cli_missing(
+    monkeypatch, tmp_path: Path
+) -> None:
+    """A kipy-reported path that no longer exists (stale cache, closed KiCad) is rejected."""
+    missing = tmp_path / "kicad-cli"
+    _fake_kipy(monkeypatch, missing)
+    assert discovery._discover_via_kipy() is None
+
+
 def test_is_ephemeral_cli_path_flags_appimage_mounts(tmp_path: Path) -> None:
     ephemeral = "/tmp/.mount_kicadAbC123/usr/bin/kicad-cli"  # noqa: S108 - test data, not created
     assert discovery._is_ephemeral_cli_path(Path(ephemeral))

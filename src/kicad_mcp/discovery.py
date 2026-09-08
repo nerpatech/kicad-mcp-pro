@@ -106,7 +106,10 @@ _EPHEMERAL_CLI_PREFIXES = ("/tmp/.mount_", "/run/user/")  # noqa: S108 - matched
 
 def _is_ephemeral_cli_path(cli: Path) -> bool:
     """Report whether ``cli`` lives under a mount that disappears with its owner."""
-    return str(cli).startswith(_EPHEMERAL_CLI_PREFIXES)
+    # These prefixes are POSIX paths; compare against the POSIX form so a
+    # WindowsPath (backslash-separated str()) still matches when kipy reports
+    # a path that was captured on a POSIX host.
+    return cli.as_posix().startswith(_EPHEMERAL_CLI_PREFIXES)
 
 
 def _discover_via_kipy() -> Path | None:
