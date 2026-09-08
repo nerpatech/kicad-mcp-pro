@@ -186,7 +186,7 @@ def test_discover_via_kipy_rejects_ephemeral_appimage_mount(monkeypatch, tmp_pat
     cli.write_text("", encoding="utf-8")
 
     _fake_kipy(monkeypatch, cli)
-    monkeypatch.setattr(discovery, "_EPHEMERAL_CLI_PREFIXES", (str(tmp_path),))
+    monkeypatch.setattr(discovery, "_EPHEMERAL_CLI_PREFIXES", (tmp_path.as_posix(),))
 
     debug_events: list[str] = []
     monkeypatch.setattr(discovery.logger, "debug", lambda event, **kw: debug_events.append(event))
@@ -209,7 +209,7 @@ def test_discover_kicad_cli_falls_through_to_path_when_kipy_is_ephemeral(
     ephemeral.write_text("", encoding="utf-8")
 
     _fake_kipy(monkeypatch, ephemeral)
-    monkeypatch.setattr(discovery, "_EPHEMERAL_CLI_PREFIXES", (str(mount.parent),))
+    monkeypatch.setattr(discovery, "_EPHEMERAL_CLI_PREFIXES", (mount.parent.as_posix(),))
     monkeypatch.setattr(discovery.shutil, "which", lambda name: str(stable))
 
     assert discovery.discover_kicad_cli() == stable
